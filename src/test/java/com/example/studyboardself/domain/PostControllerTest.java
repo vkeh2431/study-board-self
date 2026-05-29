@@ -6,7 +6,7 @@ import com.example.studyboardself.dto.post.PostCreateRequest;
 //import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 //import com.example.studyboardself.dto.post.PostUpdateRequest;
-//import com.example.studyboardself.global.exception.ResourceNotFoundException;
+import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -120,4 +120,34 @@ public class PostControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("게시글 단건 조회")
+    void find_post_by_id() throws Exception {
+        PostResponse response = new PostResponse(1L, "제목", "내용", "작성자", 1,
+                LocalDateTime.now(), LocalDateTime.now());
+
+        given(postService.findById(1L)).willReturn(response);
+
+        mockMvc.perform(get("/api/posts/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("제목"))
+                .andExpect(jsonPath("$.content").value("내용"))
+                .andExpect(jsonPath("$.author").value("작성자"))
+                .andExpect(jsonPath("$.viewCount").value(1));
+    }
+
+    @Test
+    @DisplayName("게시글 단건 조회 시 게시글이 없으면 404")
+    void find_post_by_id_not_found() throws Exception {
+        given(postService.findById(999L))
+                .willThrow(new ResourceNotFoundException("Post", 999L));
+
+        mockMvc.perform(get("/api/posts/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+    }
+
 }

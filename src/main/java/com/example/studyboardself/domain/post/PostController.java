@@ -5,6 +5,7 @@ import com.example.studyboardself.dto.post.PostCreateRequest;
 import com.example.studyboardself.dto.post.PostResponse;
 //import com.example.studyboardself.dto.post.PostUpdateRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,12 @@ public class PostController {
     public ResponseEntity<PostResponse> create(@Valid @RequestBody PostCreateRequest request) {
         PostResponse response = postService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PostResponse> findById(@PathVariable Long id) {
+        PostResponse response = postService.findById(id);
+        return ResponseEntity.ok(response);
     }
 
 }

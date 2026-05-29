@@ -21,4 +21,8 @@ public class PostService {
         return null;
     }
 
+    public PostResponse findById(Long id) {
+        return null;
+    }
+
 }
