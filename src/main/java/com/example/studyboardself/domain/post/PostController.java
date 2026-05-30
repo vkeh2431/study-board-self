@@ -4,6 +4,7 @@ import com.example.studyboardself.dto.post.PostCreateRequest;
 //import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 //import com.example.studyboardself.dto.post.PostUpdateRequest;
+import com.example.studyboardself.dto.post.PostUpdateRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,12 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> findById(@PathVariable Long id) {
         PostResponse response = postService.findById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
+        PostResponse response = postService.updatePost(id, request);
         return ResponseEntity.ok(response);
     }
 
