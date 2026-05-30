@@ -18,28 +18,28 @@ public class Post extends BaseTimeEntity {
 
     @Id
     private Long id;
-//
+    //
 //    @Column(nullable = false, length = 200)
-//    private String title;
-//
+    private String title;
+    //
 //    @Column(nullable = false, columnDefinition = "TEXT")
-//    private String content;
-//
+    private String content;
+    //
 //    @Column(nullable = false, length = 50)
-//    private String author;
-//
+    private String author;
+    //
 //    @Column(nullable = false)
-//    private int viewCount;
-//
+    private int viewCount;
+
+    //
 //    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
 //    private List<Comment> comments = new ArrayList<>();
 //
-//    @Builder
-//    public Post(String title, String content, String author) {
-//        this.title = title;
-//        this.content = content;
-//        this.author = author;
-//        this.viewCount = 0;
-//    }
-
+    @Builder
+    public Post(String title, String content, String author) {
+        this.title = title;
+        this.content = content;
+        this.author = author;
+        this.viewCount = 0;
+    }
 }
