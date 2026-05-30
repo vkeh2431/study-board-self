@@ -209,5 +209,12 @@ public class PostControllerTest {
     @Test
     @DisplayName("게시글 삭제 시 게시글이 없으면 404")
     void delete_post_not_found() throws Exception {
+        willThrow(new ResourceNotFoundException("Post", 999L))
+                .given(postService).delete(999L);
+
+        mockMvc.perform(delete("/api/posts/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+
     }
 }
