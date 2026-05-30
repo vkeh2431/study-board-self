@@ -158,7 +158,7 @@ public class PostControllerTest {
         PostResponse response = new PostResponse(1L, "수정된 제목", "수정된 내용", "작성자", 0,
                 LocalDateTime.now(), LocalDateTime.now());
 
-        given(postService.updatePost(eq(1L), any(PostUpdateRequest.class)))
+        given(postService.update(eq(1L), any(PostUpdateRequest.class)))
                 .willReturn(response);
 
         mockMvc.perform(put("/api/posts/1")
@@ -186,7 +186,7 @@ public class PostControllerTest {
     void update_post_not_found() throws Exception {
         PostUpdateRequest request = new PostUpdateRequest("수정된 제목", "수정된 내용");
 
-        given(postService.updatePost(eq(999L), any(PostUpdateRequest.class)))
+        given(postService.update(eq(999L), any(PostUpdateRequest.class)))
                 .willThrow(new ResourceNotFoundException("Post", 999L));
 
         mockMvc.perform(put("/api/posts/999")
@@ -197,4 +197,17 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
     }
 
+    @Test
+    @DisplayName("게시글 삭제")
+    void delete_post() throws Exception {
+        mockMvc.perform(delete("/api/posts/1"))
+                .andExpect(status().isNoContent());
+
+        verify(postService).delete(1L);
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 시 게시글이 없으면 404")
+    void delete_post_not_found() throws Exception {
+    }
 }

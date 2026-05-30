@@ -26,8 +26,12 @@ public class PostService {
         return null;
     }
 
-    public PostResponse updatePost(Long id, PostUpdateRequest request) {
+    public PostResponse update(Long id, PostUpdateRequest request) {
         return null;
+    }
+
+    public void delete(Long id) {
+
     }
 
 }
