@@ -1,7 +1,5 @@
-package com.example.studyboardself.domain;
+package com.example.studyboardself.domain.post;
 
-import com.example.studyboardself.domain.post.PostController;
-import com.example.studyboardself.domain.post.PostService;
 import com.example.studyboardself.dto.post.PostCreateRequest;
 //import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
@@ -13,16 +11,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 import static org.mockito.ArgumentMatchers.any;

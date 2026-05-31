@@ -1,8 +1,5 @@
-package com.example.studyboardself.domain;
+package com.example.studyboardself.domain.post;
 
-import com.example.studyboardself.domain.post.Post;
-import com.example.studyboardself.domain.post.PostRepository;
-import com.example.studyboardself.domain.post.PostService;
 import com.example.studyboardself.dto.post.PostCreateRequest;
 import com.example.studyboardself.dto.post.PostResponse;
 import com.example.studyboardself.dto.post.PostUpdateRequest;
