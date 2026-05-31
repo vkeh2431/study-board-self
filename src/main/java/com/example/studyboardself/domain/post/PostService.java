@@ -46,7 +46,10 @@ public class PostService {
     }
 
     public PostResponse update(Long id, PostUpdateRequest request) {
-        return null;
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", id));
+        post.update(request.title(), request.content());
+        return PostResponse.from(post);
     }
 
     public void delete(Long id) {
