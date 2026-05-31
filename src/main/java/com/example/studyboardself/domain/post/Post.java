@@ -42,4 +42,8 @@ public class Post extends BaseTimeEntity {
         this.author = author;
         this.viewCount = 0;
     }
+
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
 }
