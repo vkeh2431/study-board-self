@@ -108,12 +108,21 @@ public class PostServiceTest {
     @Test
     @DisplayName("게시글 삭제")
     void delete_post() {
-        
+        Post post = createPost("제목", "내용", "작성자");
+
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+
+        postService.delete(1L);
+
+        verify(postRepository).delete(post);
     }
 
     @Test
     @DisplayName("게시글 삭제 시 게시글이 없으면 예외 발생")
     void delete_post_not_found() {
+        given(postRepository.findById(999L)).willReturn(Optional.empty());
 
+        assertThatThrownBy(() -> postService.delete(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }

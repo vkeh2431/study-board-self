@@ -53,6 +53,10 @@ public class PostService {
     }
 
     public void delete(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", id));
+
+        postRepository.delete(post);
     }
 
 }
