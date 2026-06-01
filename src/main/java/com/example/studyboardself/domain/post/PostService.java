@@ -2,6 +2,7 @@ package com.example.studyboardself.domain.post;
 
 import com.example.studyboardself.dto.post.PostCreateRequest;
 //import com.example.studyboardself.dto.post.PostListResponse;
+import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 //import com.example.studyboardself.dto.post.PostUpdateRequest;
 //import com.example.studyboardself.global.exception.ResourceNotFoundException;
@@ -57,6 +58,13 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post", id));
 
         postRepository.delete(post);
+    }
+
+    public Page<PostListResponse> findAll(String keyword, Pageable pageable) {
+        Page<Post> posts = (keyword == null)
+                ? postRepository.findAll(pageable)
+                : postRepository.searchByKeyword(keyword, pageable);
+        return posts.map(PostListResponse::from);
     }
 
 }

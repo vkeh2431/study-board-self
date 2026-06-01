@@ -2,10 +2,12 @@ package com.example.studyboardself.domain.post;
 
 import com.example.studyboardself.dto.post.PostCreateRequest;
 //import com.example.studyboardself.dto.post.PostListResponse;
+import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 //import com.example.studyboardself.dto.post.PostUpdateRequest;
 import com.example.studyboardself.dto.post.PostUpdateRequest;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
+import org.springframework.data.domain.*;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.print.attribute.standard.PageRanges;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 import static org.mockito.ArgumentMatchers.any;
@@ -209,5 +213,63 @@ public class PostControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
 
+    }
+
+    @Test
+    @DisplayName("기본 페이징으로 게시글 목록 조회")
+    void findAll_with_default_pagination() throws Exception {
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<PostListResponse> content = List.of(
+                new PostListResponse(1L, "제목1", "작성자1", 0, LocalDateTime.now())
+        );
+        Page<PostListResponse> page = new PageImpl<>(content, pageable, 1);
+
+        given(postService.findAll(isNull(), any(Pageable.class))).willReturn(page);
+
+        mockMvc.perform(get("/api/posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].title").value("제목1"))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
+
+    @Test
+    @DisplayName("키워드로 게시글 검색")
+    void findAll_with_keyword() throws Exception {
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<PostListResponse> content = List.of(
+                new PostListResponse(1L, "Spring Boot 입문", "작성자", 0, LocalDateTime.now())
+        );
+        Page<PostListResponse> page = new PageImpl<>(content, pageable, 1);
+
+        given(postService.findAll(eq("Spring"), any(Pageable.class))).willReturn(page);
+
+        mockMvc.perform(get("/api/posts").param("keyword", "Spring"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].title").value("Spring Boot 입문"))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("커스텀 페이지와 사이즈로 조회")
+    void findAll_with_custom_page_and_size() throws Exception {
+        PageRequest pageable = PageRequest.of(1, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<PostListResponse> content = List.of(
+                new PostListResponse(6L, "제목6", "작성자", 0, LocalDateTime.now())
+        );
+
+        Page<PostListResponse> page = new PageImpl<>(content, pageable, 10);
+
+        given(postService.findAll(isNull(), any(Pageable.class))).willReturn(page);
+
+        mockMvc.perform(get("/api/posts")
+                        .param("page", "1")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].title").value("제목6"))
+                .andExpect(jsonPath("$.totalElements").value(10))
+                .andExpect(jsonPath("$.totalPages").value(2));
     }
 }

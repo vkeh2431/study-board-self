@@ -1,6 +1,7 @@
 package com.example.studyboardself.domain.post;
 
 import com.example.studyboardself.dto.post.PostCreateRequest;
+import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 import com.example.studyboardself.dto.post.PostUpdateRequest;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
@@ -10,7 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,5 +124,53 @@ public class PostServiceTest {
 
         assertThatThrownBy(() -> postService.delete(999L))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("키워드 없이 게시글 목록 조회 시 전체 페이징 조회")
+    void findAll_without_keyword() {
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Post> posts = List.of(createPost("제목1", "내용1", "작성자1"));
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+
+        given(postRepository.findAll(pageable)).willReturn(postPage);
+
+        Page<PostListResponse> result = postService.findAll(null, pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).title()).isEqualTo("제목1");
+        verify(postRepository).findAll(pageable);
+    }
+
+    @Test
+    @DisplayName("키워드로 게시글 검색")
+    void findAll_with_keyword() {
+        // service.findAll("keyword", pageable);
+        // 제목이나 내용에 해당 키워드가 들어있는지
+        // repo.searchByKeyword를 호출하는지
+
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "ceratedAt"));
+        List<Post> posts = List.of(createPost("Spring 입문", "내용", "작성자"));
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+
+        given(postRepository.searchByKeyword("Spring", pageable)).willReturn(postPage);
+
+        Page<PostListResponse> result = postService.findAll("Spring", pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).title()).isEqualTo("Spring 입문");
+        verify(postRepository).searchByKeyword("Spring", pageable);
+    }
+
+    @Test
+    @DisplayName("빈 키워드는 전체 조회로 처리")
+    void findAll_with_blank_keyword() {
+
+    }
+
+    @Test
+    @DisplayName("Page<Post>가 Page<PostListResponse>로 변환")
+    void findAll_returns_page_of_post_list_response() {
+
     }
 }

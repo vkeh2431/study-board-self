@@ -2,6 +2,7 @@ package com.example.studyboardself.domain.post;
 
 import com.example.studyboardself.dto.post.PostCreateRequest;
 //import com.example.studyboardself.dto.post.PostListResponse;
+import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 //import com.example.studyboardself.dto.post.PostUpdateRequest;
 import com.example.studyboardself.dto.post.PostUpdateRequest;
@@ -21,6 +22,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+
+    @GetMapping
+    public ResponseEntity<Page<PostListResponse>> finAll(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<PostListResponse> responses = postService.findAll(keyword, pageable);
+        return ResponseEntity.ok(responses);
+    }
 
     @PostMapping
     public ResponseEntity<PostResponse> create(@Valid @RequestBody PostCreateRequest request) {

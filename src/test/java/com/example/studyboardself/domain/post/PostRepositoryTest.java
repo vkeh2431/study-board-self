@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,12 +59,22 @@ public class PostRepositoryTest {
     @Test
     @DisplayName("게시글 목록 조회")
     void findAll_posts() {
-        
+        postRepository.save(createPost("제목1", "내용1", "작성자1"));
+        postRepository.save(createPost("제목2", "내용2", "작성자2"));
+
+        List<Post> posts = postRepository.findAll();
+
+        assertThat(posts).hasSize(2);
     }
 
     @Test
     @DisplayName("게시글 삭제")
     void delete_post() {
+        Post saved = postRepository.save(createPost("제목", "내용", "작성자"));
 
+        postRepository.delete(saved);
+
+        Optional<Post> found = postRepository.findById(saved.getId());
+        assertThat(found).isEmpty();
     }
 }
