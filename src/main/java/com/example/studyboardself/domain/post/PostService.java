@@ -61,7 +61,7 @@ public class PostService {
     }
 
     public Page<PostListResponse> findAll(String keyword, Pageable pageable) {
-        Page<Post> posts = (keyword == null)
+        Page<Post> posts = (keyword == null || keyword.isBlank())
                 ? postRepository.findAll(pageable)
                 : postRepository.searchByKeyword(keyword, pageable);
         return posts.map(PostListResponse::from);

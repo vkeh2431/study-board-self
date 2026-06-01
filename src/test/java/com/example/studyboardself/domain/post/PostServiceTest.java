@@ -18,9 +18,11 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
@@ -145,10 +147,6 @@ public class PostServiceTest {
     @Test
     @DisplayName("키워드로 게시글 검색")
     void findAll_with_keyword() {
-        // service.findAll("keyword", pageable);
-        // 제목이나 내용에 해당 키워드가 들어있는지
-        // repo.searchByKeyword를 호출하는지
-
         PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "ceratedAt"));
         List<Post> posts = List.of(createPost("Spring 입문", "내용", "작성자"));
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
@@ -165,12 +163,38 @@ public class PostServiceTest {
     @Test
     @DisplayName("빈 키워드는 전체 조회로 처리")
     void findAll_with_blank_keyword() {
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Post> posts = List.of(createPost("Spring 입문", "내용", "작성자"));
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
 
+        given(postRepository.findAll(pageable)).willReturn(postPage);
+
+        Page<PostListResponse> result = postService.findAll(" ", pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).title()).isEqualTo("Spring 입문");
+        verify(postRepository).findAll(pageable);
     }
 
     @Test
-    @DisplayName("Page<Post>가 Page<PostListResponse>로 변환")
+    @DisplayName("Page<Post>가 Page<PostListResponse>로 변환되는지")
     void findAll_returns_page_of_post_list_response() {
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Post> posts = List.of(createPost("제목", "내용", "작성자"));
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
 
+        given(postRepository.findAll(pageable)).willReturn(postPage);
+
+        Page<PostListResponse> result = postService.findAll(null, pageable);
+
+        assertThat(result.getContent())
+                .extracting(
+                        PostListResponse::title,
+                        PostListResponse::author,
+                        PostListResponse::viewCount
+                )
+                .containsExactly(
+                        tuple("제목", "작성자", 0)
+                );
     }
 }
