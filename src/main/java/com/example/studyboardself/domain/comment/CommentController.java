@@ -2,6 +2,7 @@ package com.example.studyboardself.domain.comment;
 
 import com.example.studyboardself.dto.comment.CommentCreateRequest;
 import com.example.studyboardself.dto.comment.CommentResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class CommentController {
     @PostMapping("/api/posts/{postId}/comments")
     public ResponseEntity<CommentResponse> create(
             @PathVariable Long postId,
-            @RequestBody CommentCreateRequest request
+            @Valid @RequestBody CommentCreateRequest request
     ) {
         CommentResponse response = commentService.create(postId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

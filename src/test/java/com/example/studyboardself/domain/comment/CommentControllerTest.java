@@ -3,6 +3,7 @@ package com.example.studyboardself.domain.comment;
 
 import com.example.studyboardself.dto.comment.CommentCreateRequest;
 import com.example.studyboardself.dto.comment.CommentResponse;
+import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,25 +56,56 @@ public class CommentControllerTest {
     @Test
     @DisplayName("댓글 생성 시 게시글이 없으면 404")
     void create_comment_post_not_found() throws Exception {
+        CommentCreateRequest request = new CommentCreateRequest("댓글 내용", "작성자");
 
+        given(commentService.create(eq(999L), any(CommentCreateRequest.class)))
+                .willThrow(new ResourceNotFoundException("Post", 999L));
+
+        mockMvc.perform(post("/api/posts/999/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
     }
 
     @Test
     @DisplayName("댓글 생성 시 내용이 비어있으면 400 에러")
     void create_comment_content_blank_validation_fail() throws Exception {
+        CommentCreateRequest request = new CommentCreateRequest(" ", "작성자");
 
+        mockMvc.perform(post("/api/posts/999/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("댓글 생성 시 작성자가 비어있으면 400 에러")
     void create_comment_author_blank_validation_fail() throws Exception {
+        CommentCreateRequest request = new CommentCreateRequest("댓글 내용", " ");
 
+        mockMvc.perform(post("/api/posts/999/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("댓글 생성 시 작성자가 50자를 초과하면 400 에러")
+    void create_comment_author_max_validation_fail() throws Exception {
+        String author = "가".repeat(51);
+        CommentCreateRequest request = new CommentCreateRequest("댓글 내용", author);
+
+        mockMvc.perform(post("/api/posts/999/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("게시글의 댓글 목록 조회")
     void findByPostId_comments() throws Exception {
-
+        
     }
 
     @Test
