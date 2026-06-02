@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,13 +106,29 @@ public class CommentControllerTest {
     @Test
     @DisplayName("게시글의 댓글 목록 조회")
     void findByPostId_comments() throws Exception {
-        
+        List<CommentResponse> responses = List.of(
+                new CommentResponse(2L, 1L, "두 번째", "작성자2",
+                        LocalDateTime.now(), LocalDateTime.now()),
+                new CommentResponse(1L, 1L, "첫 번째", "작성자1",
+                        LocalDateTime.now(), LocalDateTime.now())
+        );
+
+        given(commentService.findByPostId(1L)).willReturn(responses);
+
+        mockMvc.perform(get("/api/posts/1/comments"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
     @DisplayName("댓글 목록 조회 시 게시글이 없으면 404")
     void findByPostId_post_not_found() throws Exception {
+        given(commentService.findByPostId(999L))
+                .willThrow(new ResourceNotFoundException("Post", 999L));
 
+        mockMvc.perform(get("/api/posts/999/comments"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
     }
 
     @Test

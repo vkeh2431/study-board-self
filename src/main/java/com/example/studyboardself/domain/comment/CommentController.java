@@ -6,16 +6,21 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
+
+    @GetMapping("/api/posts/{postId}/comments")
+    public ResponseEntity<List<CommentResponse>> findByPostId(@PathVariable Long postId) {
+        List<CommentResponse> responses = commentService.findByPostId(postId);
+        return ResponseEntity.ok(responses);
+    }
 
     @PostMapping("/api/posts/{postId}/comments")
     public ResponseEntity<CommentResponse> create(
@@ -25,5 +30,6 @@ public class CommentController {
         CommentResponse response = commentService.create(postId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 
 }
