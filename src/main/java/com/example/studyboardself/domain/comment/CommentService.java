@@ -4,6 +4,7 @@ import com.example.studyboardself.domain.post.Post;
 import com.example.studyboardself.domain.post.PostRepository;
 import com.example.studyboardself.dto.comment.CommentCreateRequest;
 import com.example.studyboardself.dto.comment.CommentResponse;
+import com.example.studyboardself.dto.comment.CommentUpdateRequest;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,9 +36,16 @@ public class CommentService {
 
     public List<CommentResponse> findByPostId(Long postId) {
         postRepository.findById(postId)
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
         return commentRepository.findByPostIdOrderByCreatedAtDesc(postId).stream()
                 .map(CommentResponse::from)
                 .toList();
+    }
+
+    public CommentResponse update(Long id, CommentUpdateRequest request) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Content", id));
+        comment.update(request.content());
+        return CommentResponse.from(comment);
     }
 }

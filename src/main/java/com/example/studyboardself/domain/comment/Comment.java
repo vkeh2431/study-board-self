@@ -42,4 +42,8 @@ public class Comment extends BaseTimeEntity {
     public void assignPost(Post post) {
         this.post = post;
     }
+
+    public void update(String content) {
+        this.content = content;
+    }
 }

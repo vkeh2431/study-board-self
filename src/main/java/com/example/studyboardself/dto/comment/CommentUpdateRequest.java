@@ -1,4 +1,4 @@
 package com.example.studyboardself.dto.comment;
 
-public class CommentUpdateRequest {
+public record CommentUpdateRequest(String content) {
 }

@@ -4,6 +4,7 @@ import com.example.studyboardself.domain.post.Post;
 import com.example.studyboardself.domain.post.PostRepository;
 import com.example.studyboardself.dto.comment.CommentCreateRequest;
 import com.example.studyboardself.dto.comment.CommentResponse;
+import com.example.studyboardself.dto.comment.CommentUpdateRequest;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -124,19 +125,37 @@ public class CommentServiceTest {
     @Test
     @DisplayName("댓글 목록 조회 시 게시글이 없으면 예외 발생")
     void findByPostId_post_not_found() {
+        given(postRepository.findById(999L)).willReturn(Optional.empty());
 
+        assertThatThrownBy(() -> commentService.findByPostId(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     @DisplayName("댓글 수정")
     void update_comment() {
+        Post post = createPost();
+        Comment comment = createComment(post);
+        CommentUpdateRequest request = new CommentUpdateRequest("수정된 내용");
 
+        given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
+
+        CommentResponse response = commentService.update(1L, request);
+
+        assertThat(response.content()).isEqualTo("수정된 내용");
+        assertThat(comment.getContent()).isEqualTo("수정된 내용");
+        verify(commentRepository).findById(1L);
     }
 
     @Test
     @DisplayName("댓글 수정 시 댓글이 없으면 예외 발생")
     void update_comment_not_found() {
+        CommentUpdateRequest request = new CommentUpdateRequest("수정된 내용");
 
+        given(commentRepository.findById(999L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> commentService.update(999L, request))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
