@@ -161,12 +161,22 @@ public class CommentServiceTest {
     @Test
     @DisplayName("댓글 삭제")
     void delete_comment() {
+        Post post = createPost();
+        Comment comment = createComment(post);
 
+        given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
+
+        commentService.delete(1L);
+
+        verify(commentRepository).delete(comment);
     }
 
     @Test
     @DisplayName("댓글 삭제 시 댓글이 없으면 예외 발생")
     void delete_comment_not_found() {
+        given(commentRepository.findById(999L)).willReturn(Optional.empty());
 
+        assertThatThrownBy(() -> commentService.delete(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }

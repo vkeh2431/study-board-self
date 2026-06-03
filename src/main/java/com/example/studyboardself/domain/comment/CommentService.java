@@ -48,4 +48,10 @@ public class CommentService {
         comment.update(request.content());
         return CommentResponse.from(comment);
     }
+
+    public void delete(Long id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Content", id));
+        commentRepository.delete(comment);
+    }
 }
