@@ -34,6 +34,10 @@ public class CommentService {
     }
 
     public List<CommentResponse> findByPostId(Long postId) {
-        return null;
+        postRepository.findById(postId)
+                .orElseThrow();
+        return commentRepository.findByPostIdOrderByCreatedAtDesc(postId).stream()
+                .map(CommentResponse::from)
+                .toList();
     }
 }

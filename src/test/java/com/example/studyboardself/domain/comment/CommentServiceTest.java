@@ -14,11 +14,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -105,7 +107,18 @@ public class CommentServiceTest {
     @Test
     @DisplayName("게시글의 댓글 목록 조회")
     void findByPostId_comments() {
-        
+        Post post = createPost();
+        Comment comment1 = createComment(post);
+        Comment comment2 = createComment(post);
+
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+        given(commentRepository.findByPostIdOrderByCreatedAtDesc(1L))
+                .willReturn(List.of(comment2, comment1));
+
+        List<CommentResponse> responses = commentService.findByPostId(1L);
+
+        assertThat(responses).hasSize(2);
+        verify(commentRepository).findByPostIdOrderByCreatedAtDesc(1L);
     }
 
     @Test
