@@ -32,16 +32,20 @@ public class Post extends BaseTimeEntity {
 //    @Column(nullable = false)
     private int viewCount;
 
-    //
-//    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
-//    private List<Comment> comments = new ArrayList<>();
-//
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    private List<Comment> comments = new ArrayList<>();
+
     @Builder
     public Post(String title, String content, String author) {
         this.title = title;
         this.content = content;
         this.author = author;
         this.viewCount = 0;
+    }
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+        comment.assignPost(this);
     }
 
     public void update(String title, String content) {
