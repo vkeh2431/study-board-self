@@ -1,17 +1,24 @@
 package com.example.studyboardself.domain.post;
 
 
+import com.example.studyboardself.dto.post.PostCreateRequest;
 import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 import com.example.studyboardself.dto.post.PostSearchCondition;
+import com.example.studyboardself.global.config.SecurityConfig;
+import com.example.studyboardself.global.security.RestAuthenticationEntryPoint;
+import com.example.studyboardself.global.exception.ErrorCode;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
+import com.example.studyboardself.global.security.WithMockCustomUser;
 import net.bytebuddy.implementation.bind.ParameterLengthResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -33,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PostController.class)
+@Import({SecurityConfig.class, RestAuthenticationEntryPoint.class})
 class PostControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -142,6 +150,53 @@ class PostControllerTest {
         Pageable captured = pageableCaptor.getValue();
         assertThat(captured.getPageNumber()).isEqualTo(1);
         assertThat(captured.getPageSize()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("게시글 생성")
+    @WithMockCustomUser
+    void create_post() throws Exception {
+        PostCreateRequest request = new PostCreateRequest("제목", "내용");
+        PostResponse response = new PostResponse(1L, "제목", "내용", "작성자", 0,
+                LocalDateTime.now(), LocalDateTime.now());
+
+        given(postService.create(eq(1L), any(PostCreateRequest.class))).willReturn(response);
+
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("제목"));
+
+        ArgumentCaptor<PostCreateRequest> requestCaptor = ArgumentCaptor.forClass(PostCreateRequest.class);
+        verify(postService).create(eq(1L), requestCaptor.capture());
+        PostCreateRequest captured = requestCaptor.getValue();
+        assertThat(captured.title()).isEqualTo("제목");
+        assertThat(captured.content()).isEqualTo("내용");
+    }
+
+    @Test
+    @DisplayName("인증 없이 게시글 생성 시 401")
+    void create_post_unauthenticated() throws Exception {
+        PostCreateRequest request = new PostCreateRequest("제목", "내용");
+
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(ErrorCode.UNAUTHORIZED.getCode()));
+    }
+
+    @Test
+    @DisplayName("게시글 생성 시 제목이 비어있으면 400 에러")
+    void create_post_validation_fail() throws Exception {
+
+    }
+
+    @Test
+    @DisplayName("게시글 생성 시 본문이 한계를 초과하면 400 에러")
+    void create_post_with_too_long_content_returns_400() throws Exception {
+
     }
 
 }

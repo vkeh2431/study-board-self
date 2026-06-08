@@ -1,5 +1,6 @@
 package com.example.studyboardself.domain.post;
 
+import com.example.studyboardself.dto.post.PostCreateRequest;
 import com.example.studyboardself.dto.post.PostListResponse;
 import com.example.studyboardself.dto.post.PostResponse;
 import com.example.studyboardself.dto.post.PostSearchCondition;
@@ -21,6 +22,10 @@ public class PostService {
     }
 
     public Page<PostListResponse> findAll(PostSearchCondition postSearchCondition, Pageable pageable) {
+        return null;
+    }
+
+    public PostResponse create(Long memberId, PostCreateRequest request) {
         return null;
     }
 }
