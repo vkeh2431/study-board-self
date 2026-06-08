@@ -189,14 +189,28 @@ class PostControllerTest {
 
     @Test
     @DisplayName("게시글 생성 시 제목이 비어있으면 400 에러")
+    @WithMockCustomUser
     void create_post_validation_fail() throws Exception {
+        PostCreateRequest request = new PostCreateRequest("", "내용");
 
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.getCode()));
     }
 
     @Test
     @DisplayName("게시글 생성 시 본문이 한계를 초과하면 400 에러")
+    @WithMockCustomUser
     void create_post_with_too_long_content_returns_400() throws Exception {
+        PostCreateRequest request = new PostCreateRequest("제목", "a".repeat(50001));
 
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.getCode()));
     }
 
 }

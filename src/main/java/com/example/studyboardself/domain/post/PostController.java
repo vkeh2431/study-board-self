@@ -8,6 +8,7 @@ import com.example.studyboardself.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +47,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostResponse> create(
             @AuthenticationPrincipal CustomUserDetails principal,
-            @RequestBody PostCreateRequest request
+            @Valid @RequestBody PostCreateRequest request
     ) {
         PostResponse response = postService.create(principal.getMemberId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
