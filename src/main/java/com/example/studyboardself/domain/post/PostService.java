@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -26,6 +28,10 @@ public class PostService {
     }
 
     public PostResponse create(Long memberId, PostCreateRequest request) {
+        return null;
+    }
+
+    public List<PostListResponse> findPopular() {
         return null;
     }
 }

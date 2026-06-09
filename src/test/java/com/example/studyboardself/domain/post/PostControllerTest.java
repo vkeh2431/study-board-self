@@ -213,4 +213,62 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.getCode()));
     }
 
+    @Test
+    @DisplayName("인기글 목록 조회 (/popular는 /{id}보다 우선 매칭)")
+    void find_popular_posts() throws Exception {
+        given(postService.findPopular()).willReturn(List.of(
+                new PostListResponse(1L, "인기글", "작성자", 100, LocalDateTime.now())
+        ));
+
+        mockMvc.perform(get("/api/posts/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].title").value("인기글"))
+                .andExpect(jsonPath("$[0].viewCount").value(100));
+
+        verify(postService).findPopular();
+    }
+
+    @Test
+    @DisplayName("게시글 수정")
+    void update_post() throws Exception {
+        
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 사용자가 수정하면 403")
+    void update_post_forbidden() throws Exception {
+
+    }
+
+    @Test
+    @DisplayName("게시글 수정 시 제목이 비어있으면 400 에러")
+    void update_post_validation_fail() throws Exception {
+
+    }
+
+    @Test
+    @DisplayName("게시글 수정 시 게시글이 없으면 404")
+    void update_post_not_found() throws Exception {
+
+    }
+
+    @Test
+    @DisplayName("게시글 삭제")
+    void delete_post() throws Exception {
+
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 시 게시글이 없으면 404")
+    void delete_post_not_found() throws Exception {
+
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 사용자가 삭제하면 403")
+    void delete_post_forbidden() throws Exception {
+
+    }
+
 }

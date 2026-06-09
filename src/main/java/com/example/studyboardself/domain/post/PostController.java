@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "게시글", description = "게시글 CRUD 및 검색. 조회는 공개, 쓰기는 인증 필요")
 @RestController
 @RequestMapping("/api/posts")
@@ -51,6 +53,11 @@ public class PostController {
     ) {
         PostResponse response = postService.create(principal.getMemberId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<List<PostListResponse>> findPopular() {
+        return ResponseEntity.ok(postService.findPopular());
     }
 
 }
