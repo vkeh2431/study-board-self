@@ -8,8 +8,8 @@ public record ErrorResponse(
         String message,
         Map<String, String> fieldErrors
 ) {
-    public ErrorResponse(int stauts, String code, String message) {
-        this(stauts, code, message, null);
+    public ErrorResponse(int status, String code, String message) {
+        this(status, code, message, null);
     }
 
     public static ErrorResponse of(ErrorCode errorCode) {

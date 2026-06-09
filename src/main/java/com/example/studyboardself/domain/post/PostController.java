@@ -1,9 +1,6 @@
 package com.example.studyboardself.domain.post;
 
-import com.example.studyboardself.dto.post.PostCreateRequest;
-import com.example.studyboardself.dto.post.PostListResponse;
-import com.example.studyboardself.dto.post.PostResponse;
-import com.example.studyboardself.dto.post.PostSearchCondition;
+import com.example.studyboardself.dto.post.*;
 import com.example.studyboardself.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 
@@ -58,6 +55,16 @@ public class PostController {
     @GetMapping("/popular")
     public ResponseEntity<List<PostListResponse>> findPopular() {
         return ResponseEntity.ok(postService.findPopular());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PostResponse> update(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long id,
+            @Valid @RequestBody PostUpdateRequest request
+    ) {
+        PostResponse response = postService.update(id, principal.getMemberId(), principal.getRole(), request);
+        return ResponseEntity.ok(response);
     }
 
 }

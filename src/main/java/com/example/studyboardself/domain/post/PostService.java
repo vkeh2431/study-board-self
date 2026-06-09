@@ -1,9 +1,7 @@
 package com.example.studyboardself.domain.post;
 
-import com.example.studyboardself.dto.post.PostCreateRequest;
-import com.example.studyboardself.dto.post.PostListResponse;
-import com.example.studyboardself.dto.post.PostResponse;
-import com.example.studyboardself.dto.post.PostSearchCondition;
+import com.example.studyboardself.domain.member.Role;
+import com.example.studyboardself.dto.post.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +30,10 @@ public class PostService {
     }
 
     public List<PostListResponse> findPopular() {
+        return null;
+    }
+
+    public PostResponse update(Long id, Long memberId, Role role, PostUpdateRequest request) {
         return null;
     }
 }
