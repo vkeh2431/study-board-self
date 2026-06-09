@@ -36,4 +36,7 @@ public class PostService {
     public PostResponse update(Long id, Long memberId, Role role, PostUpdateRequest request) {
         return null;
     }
+
+    public void delete(Long id, Long memberId, Role role) {
+    }
 }

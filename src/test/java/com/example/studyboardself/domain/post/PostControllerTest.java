@@ -28,8 +28,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -295,20 +295,36 @@ class PostControllerTest {
 
     @Test
     @DisplayName("게시글 삭제")
+    @WithMockCustomUser
     void delete_post() throws Exception {
+        mockMvc.perform(delete("/api/posts/1"))
+                .andExpect(status().isNoContent());
 
+        verify(postService).delete(1L, 1L, Role.USER);
     }
 
     @Test
     @DisplayName("게시글 삭제 시 게시글이 없으면 404")
+    @WithMockCustomUser
     void delete_post_not_found() throws Exception {
+        willThrow(new ResourceNotFoundException("Post", 999L))
+                .given(postService).delete(999L, 1L, Role.USER);
 
+        mockMvc.perform(delete("/api/posts/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.getCode()));
     }
 
     @Test
     @DisplayName("작성자가 아닌 사용자가 삭제하면 403")
+    @WithMockCustomUser(memberId = 2L)
     void delete_post_forbidden() throws Exception {
+        willThrow(new ForbiddenException())
+                .given(postService).delete(1L, 2L, Role.USER);
 
+        mockMvc.perform(delete("/api/posts/1"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.FORBIDDEN.getCode()));
     }
 
 }

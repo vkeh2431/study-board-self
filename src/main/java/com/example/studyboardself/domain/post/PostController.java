@@ -67,4 +67,12 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long id
+    ) {
+        postService.delete(id, principal.getMemberId(), principal.getRole());
+        return ResponseEntity.noContent().build();
+    }
 }
