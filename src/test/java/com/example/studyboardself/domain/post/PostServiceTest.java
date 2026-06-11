@@ -1,5 +1,212 @@
 package com.example.studyboardself.domain.post;
 
+import com.example.studyboardself.domain.category.Category;
+import com.example.studyboardself.domain.category.CategoryRepository;
+import com.example.studyboardself.domain.member.Member;
+import com.example.studyboardself.domain.member.MemberRepository;
+import com.example.studyboardself.domain.member.Role;
+import com.example.studyboardself.domain.tag.Tag;
+import com.example.studyboardself.domain.tag.TagRepository;
+import com.example.studyboardself.dto.post.PostCreateRequest;
+import com.example.studyboardself.dto.post.PostListResponse;
+import com.example.studyboardself.dto.post.PostResponse;
+import com.example.studyboardself.dto.post.PostSearchCondition;
+import com.example.studyboardself.global.exception.ResourceNotFoundException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+@ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
+    @Mock
+    private PostRepository postRepository;
+
+    @Mock
+    private MemberRepository memberRepository;
+
+    @Mock
+    private CategoryRepository categoryRepository;
+
+    @Mock
+    private TagRepository tagRepository;
+
+    @InjectMocks
+    private PostService postService;
+
+    private Member createMember(String username) {
+        return Member.builder()
+                .email(username + "@exaplem.com")
+                .username(username)
+                .password("encoded")
+                .role(Role.USER)
+                .build();
+    }
+
+    private Post createPost(String title, String content, String authorName) {
+        return Post.builder()
+                .title(title)
+                .content(content)
+                .member(createMember(authorName))
+                .build();
+    }
+
+    @Test
+    @DisplayName("목록 조회 - 받은 검색 조건/페이지 정보를 변형 없이 repository.search에 위임하고 그 결과를 그대로 반환한다")
+    void findAll_delegates_to_repository_search() {
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        PostSearchCondition condition = new PostSearchCondition("Spring", "작성자", null, null);
+        Page<PostListResponse> repositoryResult = new PageImpl<>(
+                List.of(new PostListResponse(1L, "Spring 입문", "작성자", "스프링", 0, 2L, 5L, LocalDateTime.now()))
+        );
+        given(postRepository.search(condition, pageable)).willReturn(repositoryResult);
+
+        Page<PostListResponse> result = postService.findAll(condition, pageable);
+
+        verify(postRepository).search(condition, pageable);
+        assertThat(result).isSameAs(repositoryResult);
+    }
+
+    @Test
+    @DisplayName("게시글 생성 - 인증된 회원이 작성자로 주입된다")
+    void create_post() {
+        Member member = createMember("작성자");
+        PostCreateRequest request = new PostCreateRequest("제목", "내용", null, null);
+        Post saved = Post.builder().title("제목").content("내용").member(member).build();
+
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        PostResponse response = postService.create(1L, request);
+
+        ArgumentCaptor<Post> captor = ArgumentCaptor.forClass(Post.class);
+        verify(postRepository).save(captor.capture());
+        Post persisted = captor.getValue();
+        assertThat(persisted.getTitle()).isEqualTo("제목");
+        assertThat(persisted.getContent()).isEqualTo("내용");
+        assertThat(persisted.getMember().getUsername()).isEqualTo("작성자");
+
+        assertThat(response.title()).isEqualTo("제목");
+        assertThat(response.content()).isEqualTo("내용");
+        assertThat(response.authorName()).isEqualTo("작성자");
+    }
+
+    @Test
+    @DisplayName("게시글 생성 시 카테고리와 태그가 반영된다 (없는 태그는 생성)")
+    void create_post_with_category_and_tags() {
+        Member member = createMember("작성자");
+        Category category = Category.builder().name("스프링").build();
+        Tag existing = Tag.builder().name("java").build();
+        PostCreateRequest request = new PostCreateRequest("제목", "내용", 5L, List.of("java", "spring"));
+
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(categoryRepository.findById(5L)).willReturn(Optional.of(category));
+        given(tagRepository.findByName("java")).willReturn(Optional.of(existing));
+        given(tagRepository.findByName("spring")).willReturn(Optional.empty());
+        given(tagRepository.save(any(Tag.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        PostResponse response = postService.create(1L, request);
+
+        assertThat(response.categoryName()).isEqualTo("스프링");
+        assertThat(response.tagNames()).containsExactlyInAnyOrder("java", "spring");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 카테고리로 생성 시 ResourceNotFoundException")
+    void create_post_with_unknown_category() {
+        given(memberRepository.findById(1L)).willReturn(Optional.of(createMember("작성자")));
+        given(categoryRepository.findById(99L)).willReturn(Optional.empty());
+
+        PostCreateRequest request = new PostCreateRequest("제목", "내용", 99L, null);
+
+        assertThatThrownBy(() -> postService.create(1L, request))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("게시글 단건 조회 시 조회수를 원자적으로 증가시키고 증가된 값을 반환한다")
+    void find_post_by_id() {
+
+    }
+
+    @Test
+    @DisplayName("단건 조회 시 영향 행이 0이면(없거나 soft-deleted) 404 예외 + 조회 생략")
+    void find_post_by_id_not_found() {
+
+    }
+
+    @Test
+    @DisplayName("단건 조회 시 좋아요 수와 현재 사용자의 좋아요 여부가 담긴다")
+    void find_post_by_id_with_like_info() {
+
+    }
+
+    @Test
+    @DisplayName("작성자 본인이 게시글 수정")
+    void update_post() {
+
+    }
+
+    @Test
+    @DisplayName("게시글 수정 시 게시글이 없으면 예외 발생")
+    void update_post_not_found() {
+
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 사용자가 수정하면 ForbiddenException")
+    void update_post_by_non_owner_forbidden() {
+
+    }
+
+    @Test
+    @DisplayName("ADMIN은 타인 게시글도 수정 가능")
+    void update_post_by_admin_allowed() {
+
+    }
+
+    @Test
+    @DisplayName("작성자 본인이 게시글 삭제")
+    void delete_post() {
+
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 시 게시글이 없으면 예외 발생")
+    void delete_post_not_found() {
+
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 사용자가 삭제하면 ForbiddenException")
+    void delete_post_by_non_owner_forbidden() {
+
+    }
+
+    @Test
+    @DisplayName("ADMIN은 타인 게시글도 삭제 가능")
+    void delete_post_by_admin_allowed() {
+
+    }
 
 }

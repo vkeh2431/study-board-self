@@ -1,7 +1,16 @@
 package com.example.studyboardself.domain.post;
 
+import com.example.studyboardself.domain.category.Category;
+import com.example.studyboardself.domain.category.CategoryRepository;
+import com.example.studyboardself.domain.member.Member;
+import com.example.studyboardself.domain.member.MemberRepository;
 import com.example.studyboardself.domain.member.Role;
+import com.example.studyboardself.domain.tag.Tag;
+import com.example.studyboardself.domain.tag.TagRepository;
 import com.example.studyboardself.dto.post.*;
+import com.example.studyboardself.global.exception.BusinessException;
+import com.example.studyboardself.global.exception.ErrorCode;
+import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -10,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -17,16 +28,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostService {
 
+    private final PostRepository postRepository;
+    private final MemberRepository memberRepository;
+    private final CategoryRepository categoryRepository;
+    private final TagRepository tagRepository;
+
     public PostResponse findById(Long id, Long memberId) {
         return null;
     }
 
     public Page<PostListResponse> findAll(PostSearchCondition postSearchCondition, Pageable pageable) {
-        return null;
+        return postRepository.search(postSearchCondition, pageable);
     }
 
     public PostResponse create(Long memberId, PostCreateRequest request) {
-        return null;
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+        Post post = Post.builder()
+                .title(request.title())
+                .content(request.content())
+                .member(member)
+                .build();
+        applyCategory(post, request.categoryId());
+        applyTags(post, request.tagNames());
+        Post saved = postRepository.save(post);
+        return PostResponse.of(saved, 0L, false);
     }
 
     public List<PostListResponse> findPopular() {
@@ -38,5 +64,26 @@ public class PostService {
     }
 
     public void delete(Long id, Long memberId, Role role) {
+    }
+
+    private void applyCategory(Post post, Long categoryId) {
+        Category category = (categoryId == null) ? null
+                : categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", categoryId));
+        post.assignCategory(category);
+    }
+
+    private void applyTags(Post post, List<String> tagNames) {
+        Set<String> tags = (tagNames == null) ? Set.of()
+                : tagNames.stream()
+                .filter(name -> name != null && !name.isBlank())
+                .collect(Collectors.toSet());
+
+        for (String name : tags) {
+            Tag tag = tagRepository.findByName(name)
+                    .orElseGet(() -> tagRepository.save(Tag.builder().name(name).build()));
+            post.addTag(tag);
+        }
+
     }
 }
