@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -146,7 +147,17 @@ public class PostServiceTest {
     @Test
     @DisplayName("게시글 단건 조회 시 조회수를 원자적으로 증가시키고 증가된 값을 반환한다")
     void find_post_by_id() {
+        Post post = createPost("제목", "내용", "작성자");
+        ReflectionTestUtils.setField(post, "viewCount", 1);
 
+        given(postRepository.incrementViewCount(1L)).willReturn(1);
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+
+        PostResponse response = postService.findById(1L, null);
+
+        assertThat(response.title()).isEqualTo("제목");
+        assertThat(response.viewCount()).isEqualTo(1);
+        verify(postRepository).incrementViewCount(1L);
     }
 
     @Test

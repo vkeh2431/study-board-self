@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<PostListResponse> search(PostSearchCondition condition, Pageable pageable);
+
+    int incrementViewCount(Long id);
 }

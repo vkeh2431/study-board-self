@@ -34,7 +34,13 @@ public class PostService {
     private final TagRepository tagRepository;
 
     public PostResponse findById(Long id, Long memberId) {
-        return null;
+        int updated = postRepository.incrementViewCount(id);
+        if (updated == 0) {
+            throw new ResourceNotFoundException("Post", id);
+        }
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", id));
+        return PostResponse.of(post, 0L, false);
     }
 
     public Page<PostListResponse> findAll(PostSearchCondition postSearchCondition, Pageable pageable) {
