@@ -71,7 +71,7 @@ public class PostService {
 
     public PostResponse update(Long id, Long memberId, Role role, PostUpdateRequest request) {
         Post post = postRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("Post", id));
         post.update(request.title(), request.content());
         return PostResponse.of(post, 0L, false);
     }

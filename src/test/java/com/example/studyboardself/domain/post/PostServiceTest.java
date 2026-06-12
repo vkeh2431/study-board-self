@@ -211,7 +211,12 @@ public class PostServiceTest {
     @Test
     @DisplayName("게시글 수정 시 게시글이 없으면 예외 발생")
     void update_post_not_found() {
+        PostUpdateRequest request = new PostUpdateRequest("수정된 제목", "수정된 내용", null, null);
 
+        given(postRepository.findById(999L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> postService.update(999L, 1L, Role.USER, request))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
