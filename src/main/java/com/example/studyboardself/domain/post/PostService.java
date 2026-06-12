@@ -79,6 +79,10 @@ public class PostService {
     }
 
     public void delete(Long id, Long memberId, Role role) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", id));
+        verifyOwnership(post, memberId, role);
+        postRepository.delete(post);
     }
 
     private void verifyOwnership(Post post, Long memberId, Role role) {

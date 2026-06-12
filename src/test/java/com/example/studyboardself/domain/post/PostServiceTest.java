@@ -250,19 +250,32 @@ public class PostServiceTest {
     @Test
     @DisplayName("작성자 본인이 게시글 삭제")
     void delete_post() {
+        Post post = postOwnedBy(1L);
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
 
+        postService.delete(1L, 1L, Role.USER);
+
+        verify(postRepository).delete(post);
     }
 
     @Test
     @DisplayName("게시글 삭제 시 게시글이 없으면 예외 발생")
     void delete_post_not_found() {
+        given(postRepository.findById(1L)).willReturn(Optional.empty());
 
+        assertThatThrownBy(() -> postService.delete(1L, 1L, Role.USER))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     @DisplayName("작성자가 아닌 사용자가 삭제하면 ForbiddenException")
     void delete_post_by_non_owner_forbidden() {
+        Post post = postOwnedBy(1L);
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
 
+        assertThatThrownBy(() -> postService.delete(1L, 2L, Role.USER))
+                .isInstanceOf(ForbiddenException.class);
+        verify(postRepository, never()).delete(any(Post.class));
     }
 
     @Test
