@@ -9,6 +9,7 @@ import com.example.studyboardself.domain.member.Role;
 import com.example.studyboardself.domain.tag.Tag;
 import com.example.studyboardself.domain.tag.TagRepository;
 import com.example.studyboardself.dto.post.*;
+import com.example.studyboardself.global.exception.ForbiddenException;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -222,7 +223,14 @@ public class PostServiceTest {
     @Test
     @DisplayName("작성자가 아닌 사용자가 수정하면 ForbiddenException")
     void update_post_by_non_owner_forbidden() {
+        Post post = postOwnedBy(1L);
+        PostUpdateRequest request = new PostUpdateRequest("수정된 제목", "수정된 내용", null, null);
 
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.update(1L, 2L, Role.USER, request))
+                .isInstanceOf(ForbiddenException.class);
+        assertThat(post.getTitle()).isEqualTo("기존 제목");
     }
 
     @Test

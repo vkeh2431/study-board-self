@@ -73,4 +73,9 @@ public class Post extends BaseTimeEntity {
         this.content = content;
     }
 
+    public boolean isOwner(Long memberId) {
+        return memberId != null && member != null
+                && member.getId() != null && member.getId().equals(memberId);
+    }
+
 }

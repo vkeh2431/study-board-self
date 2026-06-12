@@ -11,6 +11,7 @@ import com.example.studyboardself.domain.tag.TagRepository;
 import com.example.studyboardself.dto.post.*;
 import com.example.studyboardself.global.exception.BusinessException;
 import com.example.studyboardself.global.exception.ErrorCode;
+import com.example.studyboardself.global.exception.ForbiddenException;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,11 +73,18 @@ public class PostService {
     public PostResponse update(Long id, Long memberId, Role role, PostUpdateRequest request) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", id));
+        verifyOwnership(post, memberId);
         post.update(request.title(), request.content());
         return PostResponse.of(post, 0L, false);
     }
 
     public void delete(Long id, Long memberId, Role role) {
+    }
+
+    private void verifyOwnership(Post post, Long memberId) {
+        if (!post.isOwner(memberId)) {
+            throw new ForbiddenException();
+        }
     }
 
     private void applyCategory(Post post, Long categoryId) {
