@@ -236,7 +236,15 @@ public class PostServiceTest {
     @Test
     @DisplayName("ADMIN은 타인 게시글도 수정 가능")
     void update_post_by_admin_allowed() {
+        Post post = postOwnedBy(1L);
+        PostUpdateRequest request = new PostUpdateRequest("수정된 제목", "수정된 내용", null, null);
 
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+
+        PostResponse response = postService.update(1L, 2L, Role.ADMIN, request);
+
+        assertThat(response.title()).isEqualTo("수정된 제목");
+        assertThat(post.getTitle()).isEqualTo("수정된 제목");
     }
 
     @Test

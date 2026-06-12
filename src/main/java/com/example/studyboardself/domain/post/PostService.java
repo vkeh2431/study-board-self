@@ -73,7 +73,7 @@ public class PostService {
     public PostResponse update(Long id, Long memberId, Role role, PostUpdateRequest request) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", id));
-        verifyOwnership(post, memberId);
+        verifyOwnership(post, memberId, role);
         post.update(request.title(), request.content());
         return PostResponse.of(post, 0L, false);
     }
@@ -81,8 +81,8 @@ public class PostService {
     public void delete(Long id, Long memberId, Role role) {
     }
 
-    private void verifyOwnership(Post post, Long memberId) {
-        if (!post.isOwner(memberId)) {
+    private void verifyOwnership(Post post, Long memberId, Role role) {
+        if (role != Role.ADMIN && !post.isOwner(memberId)) {
             throw new ForbiddenException();
         }
     }
