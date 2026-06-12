@@ -281,7 +281,12 @@ public class PostServiceTest {
     @Test
     @DisplayName("ADMIN은 타인 게시글도 삭제 가능")
     void delete_post_by_admin_allowed() {
+        Post post = postOwnedBy(1L);
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
 
+        postService.delete(1L, 2L, Role.ADMIN);
+
+        verify(postRepository).delete(post);
     }
 
 }
