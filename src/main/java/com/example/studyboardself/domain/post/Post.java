@@ -68,4 +68,9 @@ public class Post extends BaseTimeEntity {
         this.postTags.add(PostTag.builder().post(this).tag(tag).build());
     }
 
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
 }

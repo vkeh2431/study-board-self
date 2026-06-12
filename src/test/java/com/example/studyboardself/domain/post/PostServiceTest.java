@@ -8,10 +8,7 @@ import com.example.studyboardself.domain.member.MemberRepository;
 import com.example.studyboardself.domain.member.Role;
 import com.example.studyboardself.domain.tag.Tag;
 import com.example.studyboardself.domain.tag.TagRepository;
-import com.example.studyboardself.dto.post.PostCreateRequest;
-import com.example.studyboardself.dto.post.PostListResponse;
-import com.example.studyboardself.dto.post.PostResponse;
-import com.example.studyboardself.dto.post.PostSearchCondition;
+import com.example.studyboardself.dto.post.*;
 import com.example.studyboardself.global.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,6 +70,12 @@ public class PostServiceTest {
                 .content(content)
                 .member(createMember(authorName))
                 .build();
+    }
+
+    private Post postOwnedBy(Long ownerId) {
+        Member author = createMember("작성자");
+        ReflectionTestUtils.setField(author, "id", ownerId);
+        return Post.builder().title("기존 제목").content("기존 내용").member(author).build();
     }
 
     @Test
@@ -192,6 +195,16 @@ public class PostServiceTest {
     @Test
     @DisplayName("작성자 본인이 게시글 수정")
     void update_post() {
+        Post post = postOwnedBy(1L);
+        PostUpdateRequest request = new PostUpdateRequest("수정된 제목", "수정된 내용", null, null);
+
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+
+        PostResponse response = postService.update(1L, 1L, Role.USER, request);
+
+        assertThat(response.title()).isEqualTo("수정된 제목");
+        assertThat(response.content()).isEqualTo("수정된 내용");
+        assertThat(post.getTitle()).isEqualTo("수정된 제목");
 
     }
 

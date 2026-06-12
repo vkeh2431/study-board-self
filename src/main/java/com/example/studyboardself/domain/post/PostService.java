@@ -70,7 +70,10 @@ public class PostService {
     }
 
     public PostResponse update(Long id, Long memberId, Role role, PostUpdateRequest request) {
-        return null;
+        Post post = postRepository.findById(id)
+                .orElseThrow();
+        post.update(request.title(), request.content());
+        return PostResponse.of(post, 0L, false);
     }
 
     public void delete(Long id, Long memberId, Role role) {
