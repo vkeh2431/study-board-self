@@ -2,6 +2,7 @@ package com.example.studyboardself.domain.post;
 
 import com.example.studyboardself.domain.category.Category;
 import com.example.studyboardself.domain.category.CategoryRepository;
+import com.example.studyboardself.domain.like.PostLikeRepository;
 import com.example.studyboardself.domain.member.Member;
 import com.example.studyboardself.domain.member.MemberRepository;
 import com.example.studyboardself.domain.member.Role;
@@ -50,6 +51,9 @@ public class PostServiceTest {
 
     @Mock
     private TagRepository tagRepository;
+
+    @Mock
+    private PostLikeRepository postLikeRepository;
 
     @InjectMocks
     private PostService postService;
@@ -163,13 +167,26 @@ public class PostServiceTest {
     @Test
     @DisplayName("단건 조회 시 영향 행이 0이면(없거나 soft-deleted) 404 예외 + 조회 생략")
     void find_post_by_id_not_found() {
+        given(postRepository.incrementViewCount(999L)).willReturn(0);
 
+        assertThatThrownBy(() -> postService.findById(999L, null))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(postRepository, never()).findById(anyLong());
     }
 
     @Test
     @DisplayName("단건 조회 시 좋아요 수와 현재 사용자의 좋아요 여부가 담긴다")
     void find_post_by_id_with_like_info() {
+        Post post = createPost("제목", "내용", "작성자");
+        given(postRepository.incrementViewCount(1L)).willReturn(1);
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+        given(postLikeRepository.countByPostId(1L)).willReturn(3L);
+        given(postLikeRepository.existsByMemberIdAndPostId(7L, 1L)).willReturn(true);
 
+        PostResponse response = postService.findById(1L, 7L);
+
+        assertThat(response.likeCount()).isEqualTo(3L);
+        assertThat(response.liked()).isTrue();
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.example.studyboardself.domain.post;
 
 import com.example.studyboardself.domain.category.Category;
 import com.example.studyboardself.domain.category.CategoryRepository;
+import com.example.studyboardself.domain.like.PostLikeRepository;
 import com.example.studyboardself.domain.member.Member;
 import com.example.studyboardself.domain.member.MemberRepository;
 import com.example.studyboardself.domain.member.Role;
@@ -32,6 +33,7 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
+    private final PostLikeRepository postLikeRepository;
 
     public PostResponse findById(Long id, Long memberId) {
         int updated = postRepository.incrementViewCount(id);
@@ -40,7 +42,9 @@ public class PostService {
         }
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", id));
-        return PostResponse.of(post, 0L, false);
+        long likeCount = postLikeRepository.countByPostId(id);
+        boolean liked = postLikeRepository.existsByMemberIdAndPostId(memberId, id);
+        return PostResponse.of(post, likeCount, liked);
     }
 
     public Page<PostListResponse> findAll(PostSearchCondition postSearchCondition, Pageable pageable) {
