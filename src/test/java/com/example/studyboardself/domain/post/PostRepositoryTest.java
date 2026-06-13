@@ -21,6 +21,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -115,13 +117,20 @@ public class PostRepositoryTest {
     @Test
     @DisplayName("게시글 단건 조회")
     void findById_post() {
-        
+        Post saved = postRepository.save(createPost("제목", "내용"));
+
+        Optional<Post> found = postRepository.findById(saved.getId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getTitle()).isEqualTo("제목");
+        assertThat(found.get().getContent()).isEqualTo("내용");
+        assertThat(found.get().getMember().getUsername()).isEqualTo("작성자");
     }
 
     @Test
     @DisplayName("게시글 목록 조회")
     void findAll_posts() {
-
+        
     }
 
     @Test
