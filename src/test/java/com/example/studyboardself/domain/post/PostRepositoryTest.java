@@ -142,13 +142,30 @@ public class PostRepositoryTest {
     @Test
     @DisplayName("게시글 삭제 - soft delete: 조회에서는 제외되지만 행은 보존되고 deleted_at이 설정된다")
     void delete_post() {
+        Post saved = postRepository.saveAndFlush(createPost("제목", "내용"));
+        Long id = saved.getId();
 
+        postRepository.delete(saved);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(postRepository.findById(id)).isEmpty();
+        Long count = ((Number) entityManager
+                .createNativeQuery("SELECT COUNT(*) FROM post WHERE id = :id")
+                .setParameter("id", id)
+                .getSingleResult()).longValue();
+        assertThat(count).isEqualTo(1);
+        Object deletedAt = entityManager
+                .createNativeQuery("SELECT deleted_at FROM post WHERE id = :id")
+                .setParameter("id", id)
+                .getSingleResult();
+        assertThat(deletedAt).isNotNull();
     }
 
     @Test
     @DisplayName("제목으로 키워드 검색")
     void search_by_keyword_in_title() {
-
+        
     }
 
     @Test
