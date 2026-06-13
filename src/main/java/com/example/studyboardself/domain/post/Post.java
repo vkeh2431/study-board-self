@@ -39,6 +39,7 @@ public class Post extends BaseTimeEntity {
 
     private int viewCount;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST, orphanRemoval = true)
