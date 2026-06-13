@@ -7,6 +7,7 @@ import com.example.studyboardself.domain.member.Role;
 import com.example.studyboardself.domain.tag.TagRepository;
 import com.example.studyboardself.global.config.JpaAuditingConfig;
 import com.example.studyboardself.global.config.QueryDslConfig;
+import com.example.studyboardself.global.security.CustomUserDetails;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -57,6 +60,15 @@ public class PostRepositoryTest {
         SecurityContextHolder.clearContext();
     }
 
+    private void authenticateAs(Long memberId) {
+        CustomUserDetails principal =
+                new CustomUserDetails(memberId, "auditor@exaplme.com", "감사자", null, Role.USER);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+        SecurityContextHolder.setContext(context);
+    }
+
     private Post createPost(String title, String content) {
         return Post.builder()
                 .title(title)
@@ -91,13 +103,19 @@ public class PostRepositoryTest {
     @Test
     @DisplayName("인증된 사용자가 작성하면 createdBy에 memberId가 주입된다")
     void save_post_populates_createdBy_from_authentication() {
-        
+        authenticateAs(99L);
+
+        Post saved = postRepository.saveAndFlush(createPost("제목", "내용"));
+
+        assertThat(saved.getCreatedBy()).isEqualTo(99L);
+        assertThat(saved.getLastModifiedBy()).isEqualTo(99L);
+
     }
 
     @Test
     @DisplayName("게시글 단건 조회")
     void findById_post() {
-
+        
     }
 
     @Test
