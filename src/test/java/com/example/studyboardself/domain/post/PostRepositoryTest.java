@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -130,7 +131,12 @@ public class PostRepositoryTest {
     @Test
     @DisplayName("게시글 목록 조회")
     void findAll_posts() {
-        
+        postRepository.save(createPost("제목1", "내용1"));
+        postRepository.save(createPost("제목2", "내용2"));
+
+        List<Post> posts = postRepository.findAll();
+
+        assertThat(posts).hasSize(2);
     }
 
     @Test
