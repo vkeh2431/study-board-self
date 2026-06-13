@@ -83,13 +83,15 @@ public class PostRepositoryTest {
     @Test
     @DisplayName("인증 컨텍스트가 없으면 createdBy는 NULL")
     void save_post_without_authentication_leaves_createdBy_null() {
-        
+        Post saved = postRepository.saveAndFlush(createPost("제목", "내용"));
+
+        assertThat(saved.getCreatedBy()).isNull();
     }
 
     @Test
     @DisplayName("인증된 사용자가 작성하면 createdBy에 memberId가 주입된다")
     void save_post_populates_createdBy_from_authentication() {
-
+        
     }
 
     @Test
